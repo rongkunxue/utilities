@@ -72,3 +72,18 @@ def load_state(path, accelerator):
     else:
         logging.warning("No checkpoint path specified in the configuration")
         return -1
+    
+def find_max_param_and_grad(model):
+    max_param_val = -float('inf')
+    max_grad_val = -float('inf')
+    min_grad_val = float('inf')
+    for name, param in model.named_parameters():
+        max_param_val = max(max_param_val, param.data.abs().max().item())
+        if param.grad is not None:
+            max_grad_val = max(max_grad_val, param.grad.abs().max().item())
+            min_grad_val = min(min_grad_val, param.grad.abs().min().item())
+    if max_grad_val == -float('inf'):
+        max_grad_val = None
+    if min_grad_val == float('inf'):
+        min_grad_val = None
+    return max_param_val, max_grad_val, min_grad_val
