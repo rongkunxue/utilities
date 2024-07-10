@@ -3,27 +3,27 @@ import os
 import logging
 
 def save_state(path,accelerator,iteration):
-        if not os.path.exists(path):
-            os.makedirs(path)
-        accelerator.save_state(os.path.join(
-                path, f"checkpoint_{iteration}_save"
-            ))
-        
-def save_pt(path,accelerator,model,optimizer,iteration):
+    accelerator.wait_for_everyone()
     if accelerator.is_main_process:
         if not os.path.exists(path):
             os.makedirs(path)
-        model = accelerator.unwrap_model(model)
-        torch.save(
-                    dict(
-                        model=model.state_dict(),
-                        optimizer=optimizer.state_dict(),
-                        iteration=iteration,
-                    ),
-                    f=os.path.join(
-                        path, f"checkpoint_{iteration}.pt"
-                    ),
-                )
+    accelerator.save_state(os.path.join(
+            path, f"checkpoint_{iteration}_save"
+        ))
+        
+def save_pt(path,model,optimizer,iteration):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    torch.save(
+            dict(
+                model=model.state_dict(),
+                optimizer=optimizer.state_dict(),
+                iteration=iteration,
+            ),
+            f=os.path.join(
+                path, f"checkpoint_{iteration}.pt"
+            ),
+    )
         
 def load_pt(path,accelerator,model):
         last_iteraion=-1
