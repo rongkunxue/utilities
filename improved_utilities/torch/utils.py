@@ -26,11 +26,12 @@ def save_pt(path,accelerator,model,optimizer,iteration):
                 )
         
 def load_pt(path,accelerator,model):
+        last_iteraion=-1
         checkpoint_path = path
         if checkpoint_path is not None:
             if not os.path.exists(checkpoint_path) or not os.listdir(checkpoint_path):
                 logging.warning(f"Checkpoint path {checkpoint_path} does not exist or is empty")
-                return -1
+                return last_iteraion
 
             checkpoint_files = sorted(
                 [f for f in os.listdir(checkpoint_path) if f.endswith(".pt")],
@@ -38,30 +39,31 @@ def load_pt(path,accelerator,model):
             )
             if not checkpoint_files:
                 logging.warning(f"No checkpoint files found in {checkpoint_path}")
-                return -1
+                return last_iteraion
 
             checkpoint_file = os.path.join(checkpoint_path, checkpoint_files[-1])
             with accelerator.main_process_first():
                 checkpoint = torch.load(checkpoint_file, map_location="cpu")
                 model.load_state_dict(checkpoint["model"])
             return checkpoint.get("iteration", -1)
-        return -1
+        return last_iteraion
 
 
 def load_state(path, accelerator):
+    last_iteraion=-1
     if path is not None:
         checkpoint_path = path
 
         if not os.path.exists(checkpoint_path) or len(os.listdir(checkpoint_path)) == 0:
             logging.warning(f"Checkpoint path {checkpoint_path} does not exist or is empty")
-            return None
+            return last_iteraion
         else:
             checkpoint_files = [
                 f for f in os.listdir(checkpoint_path) if f.endswith("_save")
             ]
             if not checkpoint_files:
                 logging.warning(f"No checkpoint files found in {checkpoint_path}")
-                return None
+                return last_iteraion
 
             checkpoint_files = sorted(
                 checkpoint_files,
@@ -71,7 +73,7 @@ def load_state(path, accelerator):
             return int(os.path.basename(checkpoint_files[-1]).split("_")[1]) + 1
     else:
         logging.warning("No checkpoint path specified in the configuration")
-        return -1
+        return last_iteraion
     
 def find_max_param_and_grad(model):
     max_param_val = -float('inf')
