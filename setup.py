@@ -10,6 +10,7 @@ setup(
         'numpy',
         'torch',
         'torchvision',
+        'accelerate',
     ],
     classifiers=[
         'Programming Language :: Python :: 3',
